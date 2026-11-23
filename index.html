@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Biofuel LCA — Materials &amp; Methods Flow</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#F0F4F8;color:#1A202C}
+
+.container{display:grid;grid-template-columns:380px 1fr;grid-template-rows:minmax(0,1fr) 64px;height:100vh;height:100dvh;max-height:100vh;max-height:100dvh;overflow:hidden}
+/* grid items must be allowed to shrink below content size, else the SVG's
+   intrinsic 1600x1131 ratio blows the row past the viewport */
+.container>*{min-width:0;min-height:0}
+
+/* ═══ LEFT PANEL ═══ */
+.left{grid-row:1;grid-column:1;background:#F7FAFC;color:#1A202C;display:flex;flex-direction:column;border-right:2px solid #E2E8F0;z-index:2;overflow:hidden}
+.left-header{padding:18px 20px 14px;border-bottom:1px solid #E2E8F0;background:#fff;flex-shrink:0}
+.left-header h2{font-size:14px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:#2D3748}
+.left-header .sub{font-size:11px;color:#718096;margin-top:3px;line-height:1.4}
+
+.flow-scroll{flex:1;min-height:0;overflow-y:auto;padding:6px 0 28px;scroll-behavior:smooth}
+.flow-scroll::-webkit-scrollbar{width:4px}
+.flow-scroll::-webkit-scrollbar-thumb{background:#CBD5E0;border-radius:4px}
+
+/* ── Flowchart: Parts ── */
+.fc-part{display:flex;align-items:center;gap:8px;padding:8px 14px 3px;margin-top:4px;opacity:0;transition:opacity .4s ease}
+.fc-part.visible{opacity:1}
+.fc-pnum{font-size:9px;font-weight:800;letter-spacing:1.1px;padding:3px 8px;border-radius:5px;color:#fff;text-transform:uppercase;flex-shrink:0}
+.fc-ptitle{font-size:12px;font-weight:700;color:#2D3748}
+.fc-disc{font-size:9.5px;color:#718096;padding:0 14px 2px;font-style:italic;opacity:0;transition:opacity .4s ease;line-height:1.3}
+.fc-disc.visible{opacity:.7}
+
+/* ── Flowchart: Visibility ── */
+.flow-el{opacity:0;transform:translateY(4px);transition:opacity .38s ease,transform .38s ease}
+.flow-el.visible{opacity:.45;transform:translateY(0)}
+.flow-el.current{opacity:1!important}
+
+/* ── Full-width card ── */
+.fc-full{display:flex;align-items:center;gap:10px;padding:8px 12px;margin:3px 14px;background:#fff;border-radius:10px;border-left:4px solid var(--c,#48BB78);box-shadow:0 1px 4px rgba(0,0,0,.05);transition:opacity .38s ease,transform .38s ease,box-shadow .25s ease}
+.fc-full.current{box-shadow:0 0 0 2px var(--c,#48BB78),0 2px 8px rgba(0,0,0,.1)}
+.fc-icon{font-size:17px;flex-shrink:0}
+.fc-title{font-size:11.5px;font-weight:800;color:#1A202C;line-height:1.3}
+.fc-sub{font-size:9.5px;color:#718096;margin-top:1px;line-height:1.3}
+
+/* ── Triple-column row ── */
+.fc-triple{display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;padding:3px 12px}
+.fc-triple.current .fc-tcard{border-width:2.5px;box-shadow:0 1px 6px rgba(0,0,0,.08)}
+.fc-tcard{background:#fff;border-radius:8px;padding:5px 4px 6px;text-align:center;border:2px solid #E2E8F0;box-shadow:0 1px 2px rgba(0,0,0,.03);transition:border-width .2s,box-shadow .2s}
+.fc-temoji{font-size:15px;margin-bottom:1px}
+.fc-tname{font-size:9.5px;font-weight:800;color:#1A202C;line-height:1.2}
+.fc-tsub{font-size:8px;color:#718096;margin-top:1px;line-height:1.25}
+
+/* ── Connector SVGs ── */
+.fc-conn{padding:0 14px}
+.fc-conn svg{width:100%;height:18px;display:block}
+
+/* ── Split label ── */
+.fc-split-lbl{text-align:center;font-size:9.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#E53E3E;padding:5px 14px 2px}
+
+/* ── Double-column (pathway split) ── */
+.fc-double{display:flex;gap:6px;padding:2px 12px}
+.fc-pathway{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.fc-plabel{font-size:8.5px;font-weight:800;letter-spacing:.7px;padding:2px 10px;border-radius:8px;text-transform:uppercase;margin-bottom:1px}
+.fc-pcard{background:#fff;border-radius:8px;padding:7px 5px;text-align:center;border:2px solid #E2E8F0;box-shadow:0 1px 2px rgba(0,0,0,.03);width:100%;transition:opacity .38s ease,transform .38s ease,border-width .2s,box-shadow .2s}
+.fc-pcard.current{border-width:2.5px;box-shadow:0 1px 6px rgba(0,0,0,.08)}
+.fc-pdown{color:#A0AEC0;font-size:11px;line-height:1}
+
+/* ═══ RIGHT PANEL — BRIGHT background ═══ */
+.right{grid-row:1;grid-column:2;background:#E8EDF2;position:relative;overflow:hidden}
+/* absolute fill: the SVG can no longer push the layout around */
+.map-container{position:absolute;inset:0}
+#isoMap{display:block;width:100%;height:100%}
+
+.overlay-bar{position:absolute;top:14px;left:14px;right:14px;display:flex;align-items:center;justify-content:space-between;pointer-events:none;z-index:10}
+.map-label{background:rgba(255,255,255,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:8px 18px;border-radius:10px;font-size:13px;font-weight:700;color:#1A202C;letter-spacing:.2px;transition:opacity .3s ease;border:1px solid rgba(0,0,0,.08);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.step-badge{background:rgba(255,255,255,.75);padding:6px 14px;border-radius:8px;font-size:11px;color:#4A5568;font-weight:600;letter-spacing:.5px;border:1px solid rgba(0,0,0,.06)}
+
+/* Floating card — never clipped: capped height, scrolls if it ever overflows */
+.inv-panel{position:absolute;bottom:16px;left:16px;width:min(560px,calc(100% - 32px));max-height:calc(100% - 90px);overflow-y:auto;overscroll-behavior:contain;background:rgba(255,255,255,.94);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-radius:12px;padding:12px 16px;font-size:11px;color:#2D3748;line-height:1.65;border:1px solid rgba(0,0,0,.08);box-shadow:0 6px 24px rgba(0,0,0,.12);opacity:0;transform:translateY(10px);transition:opacity .4s ease,transform .4s ease;pointer-events:none;z-index:10}
+.inv-panel.show{opacity:1;transform:translateY(0);pointer-events:auto}
+.inv-panel::-webkit-scrollbar{width:4px}
+.inv-panel::-webkit-scrollbar-thumb{background:#CBD5E0;border-radius:4px}
+.inv-title{font-size:9.5px;font-weight:800;text-transform:uppercase;letter-spacing:.8px;color:#0D9488;margin-bottom:4px}
+.inv-row{display:flex;gap:6px;align-items:baseline}
+.inv-row+.inv-row{margin-top:2px}
+.inv-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;margin-top:4px}
+
+/* ═══ NAV BAR — BRIGHT ═══ */
+.nav{grid-row:2;grid-column:1/3;background:#fff;display:flex;align-items:center;justify-content:center;gap:16px;padding:0 24px;border-top:1px solid #E2E8F0}
+.nav button{padding:10px 26px;border:none;border-radius:10px;font-size:12.5px;font-weight:700;cursor:pointer;transition:all .2s ease;letter-spacing:.3px}
+.btn-prev{background:#EDF2F7;color:#4A5568}
+.btn-prev:hover:not(:disabled){background:#E2E8F0;color:#1A202C}
+.btn-next{background:linear-gradient(135deg,#0D9488,#0891B2);color:#fff;box-shadow:0 4px 14px rgba(13,148,136,.25)}
+.btn-next:hover:not(:disabled){filter:brightness(1.1);transform:translateY(-1px);box-shadow:0 6px 18px rgba(13,148,136,.35)}
+.nav button:disabled{opacity:.25;cursor:not-allowed;transform:none!important;filter:none!important}
+.dots{display:flex;gap:5px}
+.dot{width:8px;height:8px;border-radius:50%;background:rgba(0,0,0,.1);cursor:pointer;transition:all .3s ease}
+.dot:hover{background:rgba(0,0,0,.2)}
+.dot.active{background:#0D9488;transform:scale(1.5);box-shadow:0 0 8px rgba(13,148,136,.5)}
+.dot.passed{background:rgba(13,148,136,.4)}
+
+/* ═══ SVG LAYERS ═══ */
+#map-layer,#lab-layer{transition:opacity .6s ease}
+
+/* ═══ SVG ICON GROUPS ═══ */
+.icon-group{transition:opacity .35s ease}
+.icon-bg{fill:rgba(255,255,255,.92);stroke:rgba(0,0,0,.1);stroke-width:1}
+.icon-emoji{font-size:26px;dominant-baseline:central;text-anchor:middle}
+.icon-label{font-family:system-ui,sans-serif;font-size:9px;font-weight:700;fill:#2D3748;text-anchor:middle;dominant-baseline:hanging}
+
+@media(max-width:900px){
+  .container{grid-template-columns:1fr;grid-template-rows:40vh 1fr 60px}
+  .left{grid-row:1;grid-column:1}
+  .right{grid-row:2;grid-column:1}
+  .nav{grid-row:3;grid-column:1}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="left">
+    <div class="left-header">
+      <h2>Production Flow</h2>
+      <div class="sub">Biomethane &amp; Bioethanol from Agricultural Residues — Cameroon</div>
+    </div>
+    <div class="flow-scroll" id="flowScroll"></div>
+  </div>
+
+  <div class="right">
+    <div class="overlay-bar">
+      <div class="map-label" id="mapLabel">Overview</div>
+      <div class="step-badge" id="stepBadge">0 / 15</div>
+    </div>
+    <div class="inv-panel" id="invPanel"></div>
+    <div class="map-container">
+      <svg id="isoMap" viewBox="0 0 1600 1131" preserveAspectRatio="xMidYMid meet"></svg>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="btn-prev" id="prevBtn">&#8592; Back</button>
+    <div class="dots" id="dots"></div>
+    <button class="btn-next" id="nextBtn">Next &#8594;</button>
+  </div>
+</div>
+
+<script>
+const NS='http://www.w3.org/2000/svg';
+function $(tag,attrs,parent){const e=document.createElementNS(NS,tag);if(attrs)for(const[k,v]of Object.entries(attrs))e.setAttribute(k,v);if(parent)parent.appendChild(e);return e}
+
+/* ═══════════════════════════════════════════
+   BUILD MAP — New images with built-in arrows & text
+   NO custom SVG text, NO green arrows
+   Just zoom + move + icons above buildings
+   ═══════════════════════════════════════════ */
+function buildMap(){
+  const svg=document.getElementById('isoMap');
+
+  // Light background fill
+  $('rect',{width:'1600',height:'1131',fill:'#E8EDF2'},svg);
+
+  // ── MAP LAYER ──
+  const mapLayer=$('g',{id:'map-layer'},svg);
+  $('image',{href:'map_baru_web.png',x:'0',y:'0',width:'1600',height:'1131',preserveAspectRatio:'xMidYMid meet'},mapLayer);
+
+  // ── ICON LAYER (above buildings, not overlapping) ──
+  const iconLayer=$('g',{id:'icon-layer'},svg);
+
+  // Icon box: spans y-8 .. y+41  (so bottom sits just above the building)
+  function makeIcon(parent,x,y,emoji,label,badge){
+    const g=$('g',{},parent);
+    $('rect',{x:x-26,y:y-8,width:52,height:49,rx:'10',class:'icon-bg'},g);
+    $('text',{x:x,y:y+10,class:'icon-emoji'},g).textContent=emoji;
+    $('text',{x:x,y:y+30,class:'icon-label'},g).textContent=label;
+    if(badge){
+      $('circle',{cx:x+15,cy:y+1,r:'8',fill:'#16A34A',stroke:'#fff','stroke-width':'2'},g);
+      $('text',{x:x+15,y:y+1,'font-size':'10','font-weight':'800',fill:'#fff','text-anchor':'middle','dominant-baseline':'central','font-family':'system-ui,sans-serif'},g).textContent='✓';
+    }
+    return g;
+  }
+
+  // ── Farm icons: sit just above farm (farm content starts y≈225) ──
+  const cultIcons=$('g',{id:'icons-cultivation',class:'icon-group',opacity:'0'},iconLayer);
+  makeIcon(cultIcons,275,185,'🧪','Fertilizer');
+  makeIcon(cultIcons,405,185,'💧','Water');
+
+  const harvestIcons=$('g',{id:'icons-harvest',class:'icon-group',opacity:'0'},iconLayer);
+  makeIcon(harvestIcons,205,185,'🫘','Cocoa');
+  makeIcon(harvestIcons,340,185,'🥑','Avocado');
+  makeIcon(harvestIcons,475,185,'🥜','Groundnut');
+
+  // ── Industrial icons: just above industrial site (content starts y≈127) ──
+  const byprodIcons=$('g',{id:'icons-byproduct',class:'icon-group',opacity:'0'},iconLayer);
+  makeIcon(byprodIcons,870,72,'🛒','Product',true);
+  makeIcon(byprodIcons,1010,72,'🫛','Husk');
+  makeIcon(byprodIcons,1150,72,'🥑','Seed');
+  makeIcon(byprodIcons,1290,72,'🥜','Shell');
+
+  // ── LAB LAYER — overlays the laboratory building exactly ──
+  const labLayer=$('g',{id:'lab-layer',opacity:'0'},svg);
+  $('image',{href:'lab_baru_web.png',x:'485',y:'450',width:'790',height:'522',preserveAspectRatio:'none'},labLayer);
+}
+
+/* ═══════════════════════════════════════════
+   FLOWCHART
+   ═══════════════════════════════════════════ */
+function buildFlowchart(){
+  const c=document.getElementById('flowScroll');
+  function conn(type,color){
+    const sc=color||'#CBD5E0';
+    let p='';
+    if(type==='b3')p=`<path d="M150,0 C150,14 50,10 50,18" stroke="${sc}"/><path d="M150,0 L150,18" stroke="${sc}"/><path d="M150,0 C150,14 250,10 250,18" stroke="${sc}"/>`;
+    else if(type==='m3')p=`<path d="M50,0 C50,8 150,4 150,18" stroke="${sc}"/><path d="M150,0 L150,18" stroke="${sc}"/><path d="M250,0 C250,8 150,4 150,18" stroke="${sc}"/>`;
+    else if(type==='b2')p=`<path d="M150,0 C150,14 75,10 75,18" stroke="${sc}"/><path d="M150,0 C150,14 225,10 225,18" stroke="${sc}"/>`;
+    return `<div class="fc-conn"><svg viewBox="0 0 300 18" preserveAspectRatio="none"><g fill="none" stroke-width="2" stroke-linecap="round">${p}</g></svg></div>`;
+  }
+
+  c.innerHTML=`
+    <div class="fc-part" data-partshow="0"><span class="fc-pnum" style="background:#38A169">PART I</span><span class="fc-ptitle">Biomass Obtainings</span></div>
+
+    <div class="fc-full flow-el flow-card" data-step="0" style="--c:#48BB78"><div class="fc-icon">🌱</div><div><div class="fc-title">Cultivation</div><div class="fc-sub">Cocoa · Avocado · Groundnut — Cameroon</div></div></div>
+    <div class="flow-el" data-step="1">${conn('b3','#48BB78')}</div>
+    <div class="fc-triple flow-el flow-card" data-step="1">
+      <div class="fc-tcard" style="border-color:#48BB78"><div class="fc-temoji">🫘</div><div class="fc-tname">Cocoa</div><div class="fc-tsub">Pod: 60%<br>300 kg/ha</div></div>
+      <div class="fc-tcard" style="border-color:#68D391"><div class="fc-temoji">🥑</div><div class="fc-tname">Avocado</div><div class="fc-tsub">Seed: 16%<br>10 t/ha</div></div>
+      <div class="fc-tcard" style="border-color:#9AE6B4"><div class="fc-temoji">🥜</div><div class="fc-tname">Groundnut</div><div class="fc-tsub">Shell: 20%<br>1500 kg/ha</div></div>
+    </div>
+    <div class="flow-el" data-step="2">${conn('m3','#718096')}</div>
+    <div class="fc-full flow-el flow-card" data-step="2" style="--c:#718096"><div class="fc-icon">🏭</div><div><div class="fc-title">Industrial Processing</div><div class="fc-sub">Primary product extraction</div></div></div>
+    <div class="flow-el" data-step="3">${conn('b3','#ED8936')}</div>
+    <div class="fc-triple flow-el flow-card" data-step="3">
+      <div class="fc-tcard" style="border-color:#ED8936"><div class="fc-temoji">🫛</div><div class="fc-tname">Cocoa Pod Husk</div><div class="fc-tsub">180 kg/ha</div></div>
+      <div class="fc-tcard" style="border-color:#ED8936"><div class="fc-temoji">🌰</div><div class="fc-tname">Avocado Seed</div><div class="fc-tsub">240 kg/ha</div></div>
+      <div class="fc-tcard" style="border-color:#ED8936"><div class="fc-temoji">🥜</div><div class="fc-tname">Peanut Shell</div><div class="fc-tsub">2000 kg/ha</div></div>
+    </div>
+    <div class="flow-el" data-step="3.5">${conn('m3','#4299E1')}</div>
+
+    <div class="fc-part" data-partshow="3.5"><span class="fc-pnum" style="background:#319795">PART II</span><span class="fc-ptitle">Lab Processing</span></div>
+    <div class="fc-disc" data-partshow="3.5">Lab scale · Aligned to industrial parameters</div>
+
+    <div class="fc-full flow-el flow-card" data-step="4" style="--c:#4299E1"><div class="fc-icon">💧</div><div><div class="fc-title">Washing &amp; Drying</div><div class="fc-sub">Water rinse · Air dry to constant weight</div></div></div>
+    <div class="flow-el" data-step="5">${conn('b3','#38B2AC')}</div>
+    <div class="fc-triple flow-el flow-card" data-step="5">
+      <div class="fc-tcard" style="border-color:#38B2AC"><div class="fc-temoji">⚙️</div><div class="fc-tname">Mechanical</div><div class="fc-tsub">Grinding</div></div>
+      <div class="fc-tcard" style="border-color:#38B2AC"><div class="fc-temoji">💨</div><div class="fc-tname">Steam</div><div class="fc-tsub">Explosion</div></div>
+      <div class="fc-tcard" style="border-color:#38B2AC"><div class="fc-temoji">📡</div><div class="fc-tname">Microwave</div><div class="fc-tsub">Irradiation</div></div>
+    </div>
+    <div class="flow-el" data-step="6">${conn('m3','#718096')}</div>
+    <div class="fc-full flow-el flow-card" data-step="6" style="--c:#718096"><div class="fc-icon">⚗️</div><div><div class="fc-title">Filtration + Sterilization</div><div class="fc-sub">Distilled water · Autoclave 121°C, 15 min</div></div></div>
+
+    <div class="fc-split-lbl flow-el" data-step="7">▼ Pathway Split ▼</div>
+    <div class="flow-el" data-step="7">${conn('b2','#E53E3E')}</div>
+
+    <div class="fc-double">
+      <div class="fc-pathway">
+        <div class="fc-plabel flow-el" data-step="7" style="background:#DBEAFE;color:#1E40AF">CH₄ PATHWAY</div>
+        <div class="fc-pcard flow-el flow-card" data-step="7" style="border-color:#3182CE;--c:#3182CE"><div class="fc-temoji">🧫</div><div class="fc-tname">Anaerobic Digestion</div><div class="fc-tsub">Cellulase + inoculum · 37°C, 21d</div></div>
+        <div class="fc-pdown flow-el" data-step="8">↓</div>
+        <div class="fc-pcard flow-el flow-card" data-step="8" style="border-color:#3182CE;--c:#3182CE"><div class="fc-temoji">💨</div><div class="fc-tname">Biomethane + CO₂</div><div class="fc-tsub">FU: 1 L CH₄</div></div>
+      </div>
+      <div class="fc-pathway">
+        <div class="fc-plabel flow-el" data-step="9" style="background:#F3E8FF;color:#553C9A">C₂H₅OH PATHWAY</div>
+        <div class="fc-pcard flow-el flow-card" data-step="9" style="border-color:#805AD5;--c:#805AD5"><div class="fc-temoji">🧬</div><div class="fc-tname">Hydrolysis + Fermentation</div><div class="fc-tsub">Cellulase · Yeast · 37°C</div></div>
+        <div class="fc-pdown flow-el" data-step="10">↓</div>
+        <div class="fc-pcard flow-el flow-card" data-step="10" style="border-color:#805AD5;--c:#805AD5"><div class="fc-temoji">🌀</div><div class="fc-tname">Centrifugation</div><div class="fc-tsub">4,000 rpm separation</div></div>
+        <div class="fc-pdown flow-el" data-step="11">↓</div>
+        <div class="fc-pcard flow-el flow-card" data-step="11" style="border-color:#805AD5;--c:#805AD5"><div class="fc-temoji">🍶</div><div class="fc-tname">Bioethanol + CO₂</div><div class="fc-tsub">FU: 1 mL C₂H₅OH</div></div>
+      </div>
+    </div>
+    <div style="height:30px"></div>
+  `;
+}
+
+/* ═══════════════════════════════════════════
+   STEP DEFINITIONS — 16 steps (0-15)
+   SIMPLIFIED: just viewBox zoom/move + icons
+   NO custom text labels, NO green arrows
+   ═══════════════════════════════════════════ */
+// Center-based viewBox: guarantees the target sits dead-center of the frame
+const AR=1.42;
+function box(cx,cy,w){const h=w/AR;return [+(cx-w/2).toFixed(1),+(cy-h/2).toFixed(1),w,+h.toFixed(1)]}
+
+const LAB_VIEW=box(890,715,800);   // whole laboratory, used for fade in/out
+
+const STEPS=[
+  // 0: Overview — full map
+  {label:'Overview — Full Production Map',flow:-1,
+    vb:box(750,545,1500),phase:'map',icons:[]},
+
+  // 1: Cultivation — farm + icons, centered
+  {label:'Part I — Cultivation',flow:0,
+    vb:box(340,375,620),phase:'map',icons:['icons-cultivation']},
+
+  // 2: Harvest — same frame, harvest icons
+  {label:'Part I — Harvest & Residue Fractions',flow:1,
+    vb:box(340,375,620),phase:'map',icons:['icons-harvest']},
+
+  // 3: Industrial Processing
+  {label:'Part I — Industrial Processing',flow:2,
+    vb:box(1040,290,720),phase:'map',icons:[]},
+
+  // 4: By-products — same frame, byproduct icons
+  {label:'Part I — By-products as Feedstock',flow:3,
+    vb:box(1040,290,720),phase:'map',icons:['icons-byproduct'],
+    inv:'<div class="inv-title">Residue Yield per Hectare</div><div class="inv-row"><div class="inv-dot" style="background:#48BB78"></div>Cocoa pod husk: <b>180 kg/ha</b> (60% of fruit)</div><div class="inv-row"><div class="inv-dot" style="background:#68D391"></div>Avocado seed: <b>240 kg/ha</b> (16% of fruit)</div><div class="inv-row"><div class="inv-dot" style="background:#9AE6B4"></div>Peanut shell: <b>2,000 kg/ha</b> (20% of crop)</div>'},
+
+  // 5: Transition — industrial + lab in frame
+  {label:'Part II — Moving to Laboratory',flow:3.5,
+    vb:box(900,580,1120),phase:'map',icons:[]},
+
+  // 6: Laboratory building (exterior)
+  {label:'Part II — Laboratory',flow:3.5,
+    vb:LAB_VIEW,phase:'map',icons:[]},
+
+  // 7: Lab interior fades in over the building
+  {label:'Part II — Laboratory Interior',flow:3.5,
+    vb:LAB_VIEW,phase:'lab-fade',icons:[]},
+
+  // ── Lab processes: centered on each equipment ──
+  // 8: Washing & Drying
+  {label:'Part II — Washing & Drying',flow:4,
+    vb:box(878,605,250),phase:'lab',icons:[],
+    inv:'<div class="inv-title">Inventory Inputs</div><div class="inv-row">0.56 L water per FU (CH₄) · 1.1 L per FU (C₂H₅OH)</div><div style="margin-top:3px;color:#718096;font-size:10px">Air drying to constant weight</div>'},
+
+  // 9: Pretreatment
+  {label:'Part II — Pretreatment',flow:5,
+    vb:box(792,650,215),phase:'lab',icons:[],
+    inv:'<div class="inv-title">3 Pretreatment Methods</div><div class="inv-row"><b style="color:#0D9488">Mechanical:</b> 1.1×10⁻⁴ kWh electricity</div><div class="inv-row"><b style="color:#0D9488">Steam explosion:</b> NaOH + H₂SO₄ + 0.33 L dist. water</div><div class="inv-row"><b style="color:#0D9488">Microwave:</b> KOH + H₂SO₄ + citric acid + 0.22 L</div>'},
+
+  // 10: Filtration & Sterilization
+  {label:'Part II — Filtration & Sterilization',flow:6,
+    vb:box(906,700,240),phase:'lab',icons:[],
+    inv:'<div class="inv-title">Inventory Inputs</div><div class="inv-row">Filtration: <b>0.33 L</b> distilled water</div><div class="inv-row">Sterilization: Autoclave <b>121°C</b>, 15 min</div><div class="inv-row">Electricity: <b>1.1×10⁻⁴ kWh</b></div>'},
+
+  // ── CH₄ pathway ──
+  // 11: Anaerobic Digestion
+  {label:'Part II — Anaerobic Digestion',flow:7,
+    vb:box(800,780,205),phase:'lab',icons:[],
+    inv:'<div class="inv-title">Anaerobic Digestion</div><div class="inv-row">Raw: <b>125 g</b> residue + <b>14.7 g</b> inoculum</div><div class="inv-row">Cellulase: <b>0.2 mL</b> · Water: <b>0.22 L</b></div><div class="inv-row">37°C, 21 days · <b>2.2×10⁻³ kWh</b></div>'},
+
+  // 12: Biomethane
+  {label:'Part II — Biomethane + CO₂',flow:8,
+    vb:box(684,700,215),phase:'lab',icons:[],
+    inv:'<div class="inv-title">Biomethane Output</div><div class="inv-row">FU: <b>1 L biomethane</b></div><div class="inv-row">Biogas composition: CH₄ + CO₂</div>'},
+
+  // ── C₂H₅OH pathway (follows the pink line) ──
+  // 13: Hydrolysis + Fermentation → the FERMENTATION tank
+  {label:'Part II — Hydrolysis & Fermentation',flow:9,
+    vb:box(1022,655,220),phase:'lab',icons:[],
+    inv:'<div class="inv-title">Hydrolysis + Fermentation</div><div class="inv-row">Hydrolysis: cellulase + Tween 80 + sodium citrate</div><div class="inv-row">Fermentation: peptone + yeast extract + cellulase</div><div class="inv-row">37°C incubation</div>'},
+
+  // 14: Centrifugation
+  {label:'Part II — Centrifugation',flow:10,
+    vb:box(1112,738,210),phase:'lab',icons:[],
+    inv:'<div class="inv-title">Centrifugation</div><div class="inv-row">Speed: <b>4,000 rpm</b></div><div class="inv-row">Separation of bioethanol from biomass</div>'},
+
+  // 15: Bioethanol
+  {label:'Part II — Bioethanol + CO₂',flow:11,
+    vb:box(958,790,230),phase:'lab',icons:[],
+    inv:'<div class="inv-title">Bioethanol Output</div><div class="inv-row">FU: <b>1 mL bioethanol</b></div><div class="inv-row">Distillation and purification</div>'},
+];
+
+const TOTAL=STEPS.length-1;
+let cur=0,locked=false;
+
+/* ═══════════════════════════════════════════
+   NAVIGATION
+   ═══════════════════════════════════════════ */
+function goTo(n){
+  if(locked)return;
+  const prev=STEPS[cur];
+  cur=Math.max(0,Math.min(n,TOTAL));
+  const step=STEPS[cur];
+
+  // ── Flowchart ──
+  document.querySelectorAll('.flow-el').forEach(el=>{
+    const s=parseFloat(el.dataset.step);
+    el.classList.toggle('visible',s<=step.flow);
+    if(el.classList.contains('flow-card')){
+      el.classList.toggle('current',s===step.flow);
+    }
+  });
+  document.querySelectorAll('.fc-part,.fc-disc').forEach(el=>{
+    el.classList.toggle('visible',step.flow>=parseFloat(el.dataset.partshow));
+  });
+  const cc=document.querySelector('.flow-card.current');
+  if(cc)cc.scrollIntoView({behavior:'smooth',block:'center'});
+
+  // ── Icons ──
+  ['icons-cultivation','icons-harvest','icons-byproduct'].forEach(id=>{
+    const g=document.getElementById(id);
+    if(g)g.setAttribute('opacity',step.icons.includes(id)?'1':'0');
+  });
+
+  // ── Phase transitions ──
+  const svg=document.getElementById('isoMap');
+  const fromVB=svg.getAttribute('viewBox').split(' ').map(Number);
+  const labLayer=document.getElementById('lab-layer');
+  const from=prev.phase, to=step.phase;
+  const bldg=LAB_VIEW;
+
+  locked=true;
+
+  if(from==='map'&&to==='map'){
+    animVB(svg,fromVB,step.vb,650,()=>{locked=false});
+  }
+  else if(from==='map'&&to==='lab-fade'){
+    // Already at building, just fade in
+    labLayer.style.opacity='1';
+    setTimeout(()=>{locked=false},550);
+  }
+  else if(from==='map'&&to==='lab'){
+    // Zoom to building first, fade, then zoom to target
+    animVB(svg,fromVB,bldg,400,()=>{
+      labLayer.style.opacity='1';
+      setTimeout(()=>{animVB(svg,bldg,step.vb,500,()=>{locked=false})},350);
+    });
+  }
+  else if(from==='lab-fade'&&to==='lab'){
+    animVB(svg,fromVB,step.vb,600,()=>{locked=false});
+  }
+  else if(from==='lab-fade'&&to==='map'){
+    labLayer.style.opacity='0';
+    setTimeout(()=>{animVB(svg,fromVB,step.vb,600,()=>{locked=false})},450);
+  }
+  else if(from==='lab'&&to==='lab'){
+    animVB(svg,fromVB,step.vb,600,()=>{locked=false});
+  }
+  else if(from==='lab'&&to==='lab-fade'){
+    animVB(svg,fromVB,step.vb,600,()=>{locked=false});
+  }
+  else if(from==='lab'&&to==='map'){
+    animVB(svg,fromVB,bldg,400,()=>{
+      labLayer.style.opacity='0';
+      setTimeout(()=>{animVB(svg,bldg,step.vb,600,()=>{locked=false})},450);
+    });
+  }
+  else{
+    animVB(svg,fromVB,step.vb,600,()=>{locked=false});
+  }
+
+  // ── Inventory panel ──
+  const inv=document.getElementById('invPanel');
+  if(step.inv){inv.innerHTML=step.inv;inv.classList.add('show')}
+  else{inv.classList.remove('show')}
+
+  // ── UI ──
+  document.getElementById('mapLabel').textContent=step.label;
+  document.getElementById('stepBadge').textContent=`${cur} / ${TOTAL}`;
+  document.querySelectorAll('.dot').forEach(d=>{
+    const s=+d.dataset.s;
+    d.className='dot'+(s===cur?' active':'')+(s<cur?' passed':'');
+  });
+  document.getElementById('prevBtn').disabled=cur<=0;
+  const nb=document.getElementById('nextBtn');
+  nb.disabled=cur>=TOTAL;
+  nb.innerHTML=cur>=TOTAL?'✓ Complete':'Next →';
+}
+
+/* ═══════════════════════════════════════════
+   ANIMATION — cubic easing
+   ═══════════════════════════════════════════ */
+function animVB(svg,from,to,dur,done){
+  const t0=performance.now();
+  function tick(now){
+    let t=Math.min((now-t0)/dur,1);
+    t=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
+    const vb=from.map((f,i)=>+(f+(to[i]-f)*t).toFixed(1));
+    svg.setAttribute('viewBox',vb.join(' '));
+    if(t<1)requestAnimationFrame(tick);
+    else if(done)done();
+  }
+  requestAnimationFrame(tick);
+}
+
+/* ═══════════════════════════════════════════
+   INPUT HANDLERS
+   ═══════════════════════════════════════════ */
+function next(){goTo(cur+1)}
+function prev(){goTo(cur-1)}
+document.getElementById('nextBtn').onclick=next;
+document.getElementById('prevBtn').onclick=prev;
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();next()}
+  if(e.key==='ArrowLeft'){e.preventDefault();prev()}
+});
+let tx=0;
+document.addEventListener('touchstart',e=>{tx=e.changedTouches[0].screenX},{passive:true});
+document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].screenX-tx;if(Math.abs(dx)>50){dx<0?next():prev()}},{passive:true});
+
+// Build dots
+(function(){
+  const d=document.getElementById('dots');
+  for(let i=0;i<=TOTAL;i++){
+    const dot=document.createElement('div');
+    dot.className='dot';dot.dataset.s=i;
+    dot.onclick=()=>goTo(i);
+    d.appendChild(dot);
+  }
+})();
+
+buildMap();
+buildFlowchart();
+goTo(0);
+</script>
+</body>
+</html>
