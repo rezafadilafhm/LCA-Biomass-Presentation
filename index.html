@@ -291,11 +291,16 @@ const STEPS=[
 
   // 1: Cultivation — farm + icons, centered
   {label:'Part I — Cultivation',flow:0,
-    vb:box(340,375,620),phase:'map',icons:['icons-cultivation']},
+    vb:box(340,375,620),phase:'map',icons:['icons-cultivation'],
+    inv:'<div class="inv-title">Agricultural Inputs per Hectare (1 ha)</div>'+
+      '<div class="inv-row"><b style="color:#48BB78">Cocoa:</b> 900 m³ irrigation water · 450 kg urea · 10 kg 20:20:20 fertilizer · 5 kg herbicide · 9 L insecticide</div>'+
+      '<div class="inv-row"><b style="color:#68D391">Avocado:</b> 20,000 m³ irrigation water · 3,000 kg manure · 1,060 kg urea · 1,970 kg NPK + 1,400 kg dolomite fertilizer · 125 kg phosphate · 120 L herbicide · 14 L insecticide/fungicide · 5 L acaricide</div>'+
+      '<div class="inv-row"><b style="color:#9AE6B4">Groundnut:</b> 10 m³ irrigation water · 50 kg 20-10-10 fertilizer · 20 kg zinc sulfate</div>'},
 
   // 2: Harvest — same frame, harvest icons
   {label:'Part I — Harvest & Residue Fractions',flow:1,
-    vb:box(340,375,620),phase:'map',icons:['icons-harvest']},
+    vb:box(340,375,620),phase:'map',icons:['icons-harvest'],
+    inv:'<div class="inv-title">Annual Production per Hectare</div><div class="inv-row"><div class="inv-dot" style="background:#48BB78"></div>Cocoa: <b>300 kg/ha</b> — pod is 60% of fruit</div><div class="inv-row"><div class="inv-dot" style="background:#68D391"></div>Avocado: <b>10 t/ha</b> — seed is 16% of fruit</div><div class="inv-row"><div class="inv-dot" style="background:#9AE6B4"></div>Groundnut: <b>1,500 kg/ha</b> — shell is 20% of crop</div>'},
 
   // 3: Industrial Processing
   {label:'Part I — Industrial Processing',flow:2,
