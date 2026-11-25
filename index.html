@@ -4,9 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Biofuel LCA — Materials &amp; Methods Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Lexend:wght@500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:#F0F4F8;color:#1A202C}
+html,body{height:100%;overflow:hidden;font-family:'Inter',system-ui,-apple-system,sans-serif;background:#F0F4F8;color:#1A202C;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;font-feature-settings:'ss01' 1,'cv05' 1}
 
 .container{display:grid;grid-template-columns:380px 1fr;grid-template-rows:minmax(0,1fr) 64px;height:100vh;height:100dvh;max-height:100vh;max-height:100dvh;overflow:hidden}
 /* grid items must be allowed to shrink below content size, else the SVG's
@@ -16,7 +19,7 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
 /* ═══ LEFT PANEL ═══ */
 .left{grid-row:1;grid-column:1;background:#F7FAFC;color:#1A202C;display:flex;flex-direction:column;border-right:2px solid #E2E8F0;z-index:2;overflow:hidden}
 .left-header{padding:18px 20px 14px;border-bottom:1px solid #E2E8F0;background:#fff;flex-shrink:0}
-.left-header h2{font-size:14px;font-weight:800;letter-spacing:.3px;text-transform:uppercase;color:#2D3748}
+.left-header h2{font-family:'Lexend',sans-serif;font-size:14px;font-weight:700;letter-spacing:.3px;text-transform:uppercase;color:#2D3748}
 .left-header .sub{font-size:11px;color:#718096;margin-top:3px;line-height:1.4}
 
 .flow-scroll{flex:1;min-height:0;overflow-y:auto;padding:6px 0 28px;scroll-behavior:smooth}
@@ -26,8 +29,8 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
 /* ── Flowchart: Parts ── */
 .fc-part{display:flex;align-items:center;gap:8px;padding:8px 14px 3px;margin-top:4px;opacity:0;transition:opacity .4s ease}
 .fc-part.visible{opacity:1}
-.fc-pnum{font-size:9px;font-weight:800;letter-spacing:1.1px;padding:3px 8px;border-radius:5px;color:#fff;text-transform:uppercase;flex-shrink:0}
-.fc-ptitle{font-size:12px;font-weight:700;color:#2D3748}
+.fc-pnum{font-family:'Lexend',sans-serif;font-size:9px;font-weight:600;letter-spacing:1.1px;padding:3px 8px;border-radius:5px;color:#fff;text-transform:uppercase;flex-shrink:0}
+.fc-ptitle{font-family:'Lexend',sans-serif;font-size:12px;font-weight:600;color:#2D3748}
 .fc-disc{font-size:9.5px;color:#718096;padding:0 14px 2px;font-style:italic;opacity:0;transition:opacity .4s ease;line-height:1.3}
 .fc-disc.visible{opacity:.7}
 
@@ -40,7 +43,7 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
 .fc-full{display:flex;align-items:center;gap:10px;padding:8px 12px;margin:3px 14px;background:#fff;border-radius:10px;border-left:4px solid var(--c,#48BB78);box-shadow:0 1px 4px rgba(0,0,0,.05);transition:opacity .38s ease,transform .38s ease,box-shadow .25s ease}
 .fc-full.current{box-shadow:0 0 0 2px var(--c,#48BB78),0 2px 8px rgba(0,0,0,.1)}
 .fc-icon{font-size:17px;flex-shrink:0}
-.fc-title{font-size:11.5px;font-weight:800;color:#1A202C;line-height:1.3}
+.fc-title{font-family:'Lexend',sans-serif;font-size:11.5px;font-weight:600;color:#1A202C;line-height:1.3}
 .fc-sub{font-size:9.5px;color:#718096;margin-top:1px;line-height:1.3}
 
 /* ── Triple-column row ── */
@@ -56,12 +59,12 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
 .fc-conn svg{width:100%;height:18px;display:block}
 
 /* ── Split label ── */
-.fc-split-lbl{text-align:center;font-size:9.5px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:#E53E3E;padding:5px 14px 2px}
+.fc-split-lbl{font-family:'Lexend',sans-serif;text-align:center;font-size:9.5px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:#E53E3E;padding:5px 14px 2px}
 
 /* ── Double-column (pathway split) ── */
 .fc-double{display:flex;gap:6px;padding:2px 12px}
 .fc-pathway{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
-.fc-plabel{font-size:8.5px;font-weight:800;letter-spacing:.7px;padding:2px 10px;border-radius:8px;text-transform:uppercase;margin-bottom:1px}
+.fc-plabel{font-family:'Lexend',sans-serif;font-size:8.5px;font-weight:600;letter-spacing:.7px;padding:2px 10px;border-radius:8px;text-transform:uppercase;margin-bottom:1px}
 .fc-pcard{background:#fff;border-radius:8px;padding:7px 5px;text-align:center;border:2px solid #E2E8F0;box-shadow:0 1px 2px rgba(0,0,0,.03);width:100%;transition:opacity .38s ease,transform .38s ease,border-width .2s,box-shadow .2s}
 .fc-pcard.current{border-width:2.5px;box-shadow:0 1px 6px rgba(0,0,0,.08)}
 .fc-pdown{color:#A0AEC0;font-size:11px;line-height:1}
@@ -73,7 +76,7 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
 #isoMap{display:block;width:100%;height:100%}
 
 .overlay-bar{position:absolute;top:14px;left:14px;right:14px;display:flex;align-items:center;justify-content:space-between;pointer-events:none;z-index:10}
-.map-label{background:rgba(255,255,255,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:8px 18px;border-radius:10px;font-size:13px;font-weight:700;color:#1A202C;letter-spacing:.2px;transition:opacity .3s ease;border:1px solid rgba(0,0,0,.08);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.map-label{background:rgba(255,255,255,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);padding:8px 18px;border-radius:10px;font-family:'Lexend',sans-serif;font-size:13px;font-weight:600;color:#1A202C;letter-spacing:.2px;transition:opacity .3s ease;border:1px solid rgba(0,0,0,.08);box-shadow:0 2px 8px rgba(0,0,0,.06)}
 .step-badge{background:rgba(255,255,255,.75);padding:6px 14px;border-radius:8px;font-size:11px;color:#4A5568;font-weight:600;letter-spacing:.5px;border:1px solid rgba(0,0,0,.06)}
 
 /* Floating card — never clipped: capped height, scrolls if it ever overflows */
@@ -107,7 +110,7 @@ html,body{height:100%;overflow:hidden;font-family:'Segoe UI',system-ui,-apple-sy
 .icon-group{transition:opacity .35s ease}
 .icon-bg{fill:rgba(255,255,255,.92);stroke:rgba(0,0,0,.1);stroke-width:1}
 .icon-emoji{font-size:26px;dominant-baseline:central;text-anchor:middle}
-.icon-label{font-family:system-ui,sans-serif;font-size:9px;font-weight:700;fill:#2D3748;text-anchor:middle;dominant-baseline:hanging}
+.icon-label{font-family:'Inter',system-ui,sans-serif;font-size:9px;font-weight:700;fill:#2D3748;text-anchor:middle;dominant-baseline:hanging}
 
 @media(max-width:900px){
   .container{grid-template-columns:1fr;grid-template-rows:40vh 1fr 60px}
@@ -176,7 +179,7 @@ function buildMap(){
     $('text',{x:x,y:y+30,class:'icon-label'},g).textContent=label;
     if(badge){
       $('circle',{cx:x+15,cy:y+1,r:'8',fill:'#16A34A',stroke:'#fff','stroke-width':'2'},g);
-      $('text',{x:x+15,y:y+1,'font-size':'10','font-weight':'800',fill:'#fff','text-anchor':'middle','dominant-baseline':'central','font-family':'system-ui,sans-serif'},g).textContent='✓';
+      $('text',{x:x+15,y:y+1,'font-size':'10','font-weight':'800',fill:'#fff','text-anchor':'middle','dominant-baseline':'central','font-family':"'Inter',system-ui,sans-serif"},g).textContent='✓';
     }
     return g;
   }
